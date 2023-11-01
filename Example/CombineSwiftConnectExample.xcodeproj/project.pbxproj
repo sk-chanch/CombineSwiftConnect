@@ -23,10 +23,10 @@
 		FE645DEA2AF264E50035A188 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FE645DEC2AF264E70035A188 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FE645DEF2AF264E70035A188 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		FE645DF72AF265100035A188 /* CombineSwiftConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CombineSwiftConnect; path = ../..; sourceTree = "<group>"; };
 		FE645DF82AF2656C0035A188 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		FE645DFA2AF267B70035A188 /* CustomError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomError.swift; sourceTree = "<group>"; };
 		FE645DFF2AF26BEC0035A188 /* PokemonResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonResult.swift; sourceTree = "<group>"; };
+		FEDA57B52AF2703D00FE6408 /* CombineSwiftConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CombineSwiftConnect; path = ..; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,7 +84,7 @@
 		FE645DF62AF265100035A188 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				FE645DF72AF265100035A188 /* CombineSwiftConnect */,
+				FEDA57B52AF2703D00FE6408 /* CombineSwiftConnect */,
 			);
 			name = Packages;
 			sourceTree = "<group>";

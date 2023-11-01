@@ -155,12 +155,13 @@ public class Requester:NSObject{
                     self?.processResult($0, $1, $2,
                                         subscriber: subscriber,
                                         request: request)
+                    subscriber.send(completion: .finished)
                 }
                 
                 task.resume()
                 
-                return AnyCancellable {
-                    task.cancel()
+                return AnyCancellable {[weak task] in
+                    task?.cancel()
                 }
             }
     }
@@ -199,12 +200,14 @@ public class Requester:NSObject{
                             subscriber.send(Result.failure(customError))
                         }
                     }
+                    
+                    subscriber.send(completion: .finished)
                 }
                 
                 task.resume()
                 
-                return AnyCancellable{
-                    task.cancel()
+                return AnyCancellable{[weak task] in
+                    task?.cancel()
                 }
             }
     }
@@ -327,6 +330,7 @@ extension Requester{
                     self?.processResult($0, $1, $2,
                                         subscriber: subscriber,
                                         request: request)
+                    subscriber.send(completion: .finished)
                 }
                 
                 task.resume()

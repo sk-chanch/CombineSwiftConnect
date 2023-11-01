@@ -12,6 +12,7 @@ class ContentViewViewModel{
     var cancellable = Set<AnyCancellable>()
     func api(){
         APIClient.shared.ability()
+            .print()
             .sink(receiveValue: { r in
                 guard let result = r.value
                 else {
@@ -19,7 +20,7 @@ class ContentViewViewModel{
                     return
                 }
                 
-                print(result.results)
+                print(result.results.first?.name)
             })
             .store(in: &cancellable)
     }
