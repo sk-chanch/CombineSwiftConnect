@@ -19,7 +19,7 @@ class APIClient{
               initSessionConfig: .default)
     }()
     
-    func ability()->AnyPublisher<Result<PokemonResult, CustomError>, Never>{
+    func ability()->AnyPublisher<PokemonResult, CustomError>{
         requester.get(path: "ability/?limit=20&offset=20")
     }
 }

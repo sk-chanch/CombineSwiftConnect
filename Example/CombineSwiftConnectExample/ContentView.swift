@@ -12,13 +12,16 @@ class ContentViewViewModel{
     var cancellable = Set<AnyCancellable>()
     func api(){
         APIClient.shared.ability()
-            .print()
-            .sink(receiveValue: { r in
-                guard let result = r.value
-                else {
-                    print(r.error?.errorInfo)
-                    return
+            .sink(receiveCompletion: {completion in
+                switch completion {
+                case .finished:
+                    print("perfect!!")
+                    
+                case .failure(let error):
+                    print("error \(error.errorInfo)")
                 }
+            }, receiveValue: { result in
+               
                 
                 print(result.results.first?.name)
             })

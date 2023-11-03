@@ -35,7 +35,7 @@ public class Requester:NSObject{
     
     public func postQuery<DataResult:Decodable, CustomError:DecodError>(path:String,
                                                                         sendParameter:Encodable? = nil,
-                                                                        header:[String:String]? = nil) -> AnyPublisher<Result<DataResult, CustomError>, Never>{
+                                                                        header:[String:String]? = nil) -> AnyPublisher<DataResult, CustomError>{
         
      
         
@@ -53,7 +53,7 @@ public class Requester:NSObject{
     
     public func post<DataResult:Decodable, CustomError:DecodError>(path:String,
                                                                    sendParameter:Encodable? = nil,
-                                                                   header:[String:String]? = nil) -> AnyPublisher<Result<DataResult, CustomError>, Never>{
+                                                                   header:[String:String]? = nil) -> AnyPublisher<DataResult, CustomError>{
         
       
         let requestParameter = RequestParameter(
@@ -71,7 +71,7 @@ public class Requester:NSObject{
     public func post<DataResult:Decodable, CustomError:DecodError>(path:String,
                                                                    sendParameter:Encodable? = nil,
                                                                    header:[String:String]? = nil,
-                                                                   version:String) -> AnyPublisher<Result<DataResult, CustomError>, Never>{
+                                                                   version:String) -> AnyPublisher<DataResult, CustomError>{
         
     
         let requestParameter = RequestParameter(
@@ -89,7 +89,7 @@ public class Requester:NSObject{
 #if canImport(UIKit)
     public func postBoundary<DataResult:Decodable, CustomError:DecodError>(path:String,sendParameter:Encodable? = nil,
                                                                            header:[String:String]? = nil,
-                                                                           dataBoundary:BoundaryCreater.DataBoundary? = nil) -> AnyPublisher<Result<DataResult, CustomError>, Never>{
+                                                                           dataBoundary:BoundaryCreater.DataBoundary? = nil) -> AnyPublisher<DataResult, CustomError>{
         
         let boundaryCreater = BoundaryCreater()
         
@@ -110,7 +110,7 @@ public class Requester:NSObject{
     }
 #endif
     
-    public func get<DataResult:Decodable, CustomError:DecodError>(path:String,sendParameter:Encodable? = nil) -> AnyPublisher<Result<DataResult, CustomError>, Never>{
+    public func get<DataResult:Decodable, CustomError:DecodError>(path:String,sendParameter:Encodable? = nil) -> AnyPublisher<DataResult, CustomError>{
         
      
         
@@ -126,7 +126,7 @@ public class Requester:NSObject{
         
     }
     
-    public func getRaw<CustomError:DecodError>(path:String) -> AnyPublisher<Result<RawResponse, CustomError>, Never>{
+    public func getRaw<CustomError:DecodError>(path:String) -> AnyPublisher<RawResponse, CustomError>{
     
         var requestParameter = RequestParameter(
             httpMethod: .get,
@@ -145,9 +145,9 @@ public class Requester:NSObject{
     
     
     func call<DataResult:Decodable, CustomError:DecodError>(_ request: URLRequest, config:URLSessionConfiguration,isPreventPinning:Bool)
-        -> AnyPublisher<Result<DataResult, CustomError>, Never> {
+        -> AnyPublisher<DataResult, CustomError> {
             
-            return AnyPublisher<Result<DataResult, CustomError>, Never>.create { [weak self] subscriber in
+            return AnyPublisher<DataResult, CustomError>.create { [weak self] subscriber in
                 
                 let sessionPinning = SessionPinningDelegate(statusPreventPinning: isPreventPinning);
                 let urlSession = URLSession(configuration: config, delegate: sessionPinning, delegateQueue: nil)
@@ -155,7 +155,6 @@ public class Requester:NSObject{
                     self?.processResult($0, $1, $2,
                                         subscriber: subscriber,
                                         request: request)
-                    subscriber.send(completion: .finished)
                 }
                 
                 task.resume()
@@ -168,9 +167,9 @@ public class Requester:NSObject{
     
     
     func call<CustomError:DecodError>(_ request: URLRequest, config:URLSessionConfiguration,isPreventPinning:Bool)
-        -> AnyPublisher<Result<RawResponse, CustomError>, Never> {
+        -> AnyPublisher<RawResponse, CustomError> {
             
-            return AnyPublisher<Result<RawResponse, CustomError>, Never>.create {  subscriber in
+            return AnyPublisher<RawResponse, CustomError>.create {  subscriber in
                 
                 let sessionPinning = SessionPinningDelegate(statusPreventPinning: isPreventPinning);
                 let urlSession = URLSession(configuration: config, delegate: sessionPinning, delegateQueue: nil)
@@ -179,7 +178,7 @@ public class Requester:NSObject{
                     if error != nil {
                         
                         let customError = CustomError(error: error!)
-                        subscriber.send(Result.failure(customError))
+                        subscriber.send(completion: .failure(customError))
                         
                     }else{
                      
@@ -189,19 +188,20 @@ public class Requester:NSObject{
                             let _data = data ?? Data()
                             if statusCode == 200 {
                                 let plainResponse = RawResponse(statusCode: statusCode, data: _data)
-                                subscriber.send(Result.successful(plainResponse))
+                                subscriber.send(plainResponse)
+                                subscriber.send(completion: .finished)
                             } else {
                                 let customError = CustomError(responseCode: httpResponse.statusCode)
-                                subscriber.send(Result.failure(customError))
+                                subscriber.send(completion: .failure(customError))
                             }
                             
                         }else{
                             let customError = CustomError(unknowError: "Error URLSession")
-                            subscriber.send(Result.failure(customError))
+                            subscriber.send(completion: .failure(customError))
                         }
                     }
                     
-                    subscriber.send(completion: .finished)
+                   
                 }
                 
                 task.resume()
@@ -273,7 +273,7 @@ extension Requester{
     private func processResult<DataResult:Decodable, CustomError:DecodError>(_ data:Data?,
                                                                              _ response:URLResponse?,
                                                                              _ error:Error?,
-                                                                             subscriber: Publishers.Create<Result<DataResult, CustomError>, Never>.Subscriber?,
+                                                                             subscriber: Publishers.Create<DataResult, CustomError>.Subscriber,
                                                                              request:URLRequest) {
         var token = "empty"
         
@@ -288,7 +288,7 @@ extension Requester{
          
             let customError = CustomError(error: error!)
         
-            subscriber?.send(Result.failure(customError))
+            subscriber.send(completion: .failure(customError))
             
         }else{
         
@@ -300,28 +300,29 @@ extension Requester{
                     if statusCode == 200 {
                        
                         let objs = try decoder.decode(DataResult.self, from: _data)
-                        subscriber?.send(Result.successful(objs))
+                        subscriber.send(objs)
+                        subscriber.send(completion: .finished)
                     } else {
                         var customError = CustomError(responseCode: httpResponse.statusCode)
                        
                         customError.errorInfo = "service \(httpResponse.url?.absoluteString ?? "") error \(httpResponse.statusCode) | token : \(token) | ==> \(String(data: _data, encoding: .utf8) ?? "")"
-                        subscriber?.send(Result.failure(customError))
+                        subscriber.send(completion: .failure(customError))
                     }
                 } catch {
                     var customError = CustomError(responseCode: httpResponse.statusCode)
                     customError.errorInfo = "service \(httpResponse.url?.absoluteString ?? "") error typeMismatch | token : \(token) | ==> \(error)"
-                    subscriber?.send(Result.failure(customError))
+                    subscriber.send(completion: .failure(customError))
                 }
             }else{
                 let customError = CustomError(unknowError: "Error URLSession")
-                subscriber?.send(Result.failure(customError))
+                subscriber.send(completion: .failure(customError))
             }
         }
     }
     func callUpload<DataResult:Decodable, CustomError:DecodError>(_ request: URLRequest, config:URLSessionConfiguration,isPreventPinning:Bool, dataUploadTask:Data?)
-        -> AnyPublisher<Result<DataResult, CustomError>, Never> {
+        -> AnyPublisher<DataResult, CustomError> {
             
-            return AnyPublisher<Result<DataResult, CustomError>, Never>.create { [weak self] subscriber in
+            return AnyPublisher<DataResult, CustomError>.create { [weak self] subscriber in
                 
             
                 let sessionPinning = SessionPinningDelegate(statusPreventPinning: isPreventPinning);
@@ -330,7 +331,6 @@ extension Requester{
                     self?.processResult($0, $1, $2,
                                         subscriber: subscriber,
                                         request: request)
-                    subscriber.send(completion: .finished)
                 }
                 
                 task.resume()
