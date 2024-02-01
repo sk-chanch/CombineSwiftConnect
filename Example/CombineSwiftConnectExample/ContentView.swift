@@ -20,10 +20,10 @@ class ContentViewViewModel{
                 case .failure(let error):
                     print("error \(error.errorInfo)")
                 }
-            }, receiveValue: { result in
+            }, receiveValue: { response in
                
                 
-                print(result.results.first?.name)
+                print(response.results.first?.name)
             })
             .store(in: &cancellable)
     }

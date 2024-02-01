@@ -87,9 +87,11 @@ public class Requester:NSObject{
         
     }
 #if canImport(UIKit)
-    public func postBoundary<DataResult:Decodable, CustomError:DecodError>(path:String,sendParameter:Encodable? = nil,
+    public func postBoundary<DataResult:Decodable, CustomError:DecodError>(path:String,
+                                                                           sendParameter:Encodable? = nil,
                                                                            header:[String:String]? = nil,
-                                                                           dataBoundary:BoundaryCreater.DataBoundary? = nil) -> AnyPublisher<DataResult, CustomError>{
+                                                                           dataBoundary:BoundaryCreater.DataBoundary? = nil,
+                                                                           version: String) -> AnyPublisher<DataResult, CustomError>{
         
         let boundaryCreater = BoundaryCreater()
         
@@ -99,6 +101,7 @@ public class Requester:NSObject{
             baseUrl: self.baseUrl,
             payload: nil,
             headers: header,
+            version: version,
             hasVersion: hasVersion).asURLRequest()
         
         let data = boundaryCreater
