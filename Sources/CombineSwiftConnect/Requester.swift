@@ -147,7 +147,9 @@ public class Requester:NSObject{
  
     
     
-    func call<DataResult:Decodable, CustomError:DecodError>(_ request: URLRequest, config:URLSessionConfiguration,isPreventPinning:Bool)
+    func call<DataResult:Decodable, CustomError:DecodError>(_ request: URLRequest,
+                                                            config: URLSessionConfiguration,
+                                                            isPreventPinning:Bool)
         -> AnyPublisher<DataResult, CustomError> {
             
             return AnyPublisher<DataResult, CustomError>.create { [weak self] subscriber in
@@ -308,12 +310,34 @@ extension Requester{
                     } else {
                         var customError = CustomError(responseCode: httpResponse.statusCode)
                        
-                        customError.errorInfo = "service \(httpResponse.url?.absoluteString ?? "") error \(httpResponse.statusCode) | token : \(token) | ==> \(String(data: _data, encoding: .utf8) ?? "")"
+                        let apiUrl = httpResponse.url?.absoluteString ?? ""
+                        let errorCode = httpResponse.statusCode
+                        let responseString = String(data: _data, encoding: .utf8) ?? "-"
+                        let bodyString = String(data: request.httpBody ?? .init(), encoding: .utf8) ?? "-"
+                        
+                        var errorString = ""
+                        errorString.append("service: \(apiUrl)")
+                        errorString.append("\nbody: \(bodyString)")
+                        errorString.append("\nresponse_code: \(errorCode)")
+                        errorString.append("\ntoken: \(token)")
+                        errorString.append("\nerror: \(responseString)")
+                        
+                        customError.errorInfo = errorString
                         subscriber.send(completion: .failure(customError))
                     }
                 } catch {
                     var customError = CustomError(responseCode: httpResponse.statusCode)
-                    customError.errorInfo = "service \(httpResponse.url?.absoluteString ?? "") error typeMismatch | token : \(token) | ==> \(error)"
+                    
+                    let apiUrl = httpResponse.url?.absoluteString ?? ""
+                    let bodyString = String(data: request.httpBody ?? .init(), encoding: .utf8) ?? "-"
+                    
+                    var errorString = ""
+                    errorString.append("service: \(apiUrl)")
+                    errorString.append("\nbody: \(bodyString)")
+                    errorString.append("\ntoken: \(token)")
+                    errorString.append("\nerror_decode_fail: \(error)")
+                    
+                    customError.errorInfo = errorString
                     subscriber.send(completion: .failure(customError))
                 }
             }else{
